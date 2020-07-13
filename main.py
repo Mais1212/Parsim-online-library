@@ -1,8 +1,13 @@
 import requests
+import os
 
-url = "http://tululu.org/txt.php?id=32168"
-response = requests.get(url)
-response.raise_for_status()
-book = open('book.txt', 'w')
-book.write(response.text)
-book.close()
+if not os.path.exists("books"):
+    os.makedirs("books")
+
+for id in range(1,10):
+	url = "http://tululu.org/txt.php?id=" + str(32160 + id)
+	print(url)
+	response = requests.get(url)
+	response.raise_for_status()
+	with open('books/'+'id'+str(id)+'.txt', 'w') as book:
+  		book.write(response.text)
