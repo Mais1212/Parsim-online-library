@@ -1,13 +1,16 @@
 import requests
 import os
 
+books_umber = 0
+
 if not os.path.exists("books"):
     os.makedirs("books")
 
-for id in range(1,10):
-	url = "http://tululu.org/txt.php?id=" + str(32160 + id)
-	print(url)
+while books_umber < 8:
+	books_umber += 1
+	url = "http://tululu.org/txt.php?id=" + str(32160 + books_umber)
 	response = requests.get(url)
-	response.raise_for_status()
-	with open('books/'+'id'+str(id)+'.txt', 'w') as book:
+	if response.url == "http://tululu.org/":
+		continue
+	with open('books/'+'id'+str(books_umber)+'.txt', 'w') as book:
   		book.write(response.text)
