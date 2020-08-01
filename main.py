@@ -43,18 +43,13 @@ while BOOKS_NUMBER < 11:
 	url = 'http://tululu.org/b' + str(BOOKS_NUMBER)
 	book_url = 'http://tululu.org/txt.php?id=' + str(BOOKS_NUMBER)
 	response = requests.get(url)
-	book_response = requests.get(book_url, allow_redirects=False)
-
-	if book_response.status_code == 302:
+	book_response = requests.get(book_url)
+	if book_response.url == HOST:
 		continue
-
 	soup = BeautifulSoup(response.text, 'lxml')
 	book_img_url = HOST + soup.find("div", class_ = "bookimage").find("img").get("src")
 	title_tag = soup.find("div", id = "content").find('h1')
 	comments_tag = soup.find_all("div", class_ = "texts")
-	book_genre = soup.find("span", class_ = "d_book").find_all("a")
-	for genre in book_genre :
-		print(genre.text)
 
 	if comments_tag :
 		for comment in comments_tag:
