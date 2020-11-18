@@ -10,9 +10,9 @@ HOST = "http://tululu.org/"
 
 
 def download_comments(comments_tag, filename, folder="comments/"):
-    selector_comment = "span.black"
+    comment_selector = "span.black"
 
-    comments_list = [comment.select_one(selector_comment).text
+    comments_list = [comment.select_one(comment_selector).text
                      for comment in comments_tag]
 
     return comments_list
@@ -33,8 +33,8 @@ def download_image(url, filename, folder):
 
 
 def get_content(page, pages_content):
-    selector_url = "div.bookimage a"
-    url_book = [urljoin(page, str(book.select_one(selector_url)["href"]))
+    url_selector = "div.bookimage a"
+    url_book = [urljoin(page, str(book.select_one(url_selector)["href"]))
                 for book in pages_content]
 
     return url_book
@@ -153,8 +153,8 @@ def main():
         soup_books_collection = BeautifulSoup(
             response_books_collection.text, "lxml")
 
-        selector_content = "table.d_book"
-        pages_content = soup_books_collection.select(selector_content)
+        content_selector = "table.d_book"
+        pages_content = soup_books_collection.select(content_selector)
         books_links = get_content(book_page_collection, pages_content)
 
         for book_url in books_links:
@@ -165,18 +165,18 @@ def main():
             if response_book.status_code == 302:
                 continue
 
-            selector_book_img = ".bookimage img"
-            selector_title = "body div[id=content] h1"
-            selector_comments = ".texts"
-            seletor_book_genres = "span.d_book a"
-            selector_book_download = "table.d_book tr a:nth-of-type(2)"
+            book_img_selector = ".bookimage img"
+            title_selector = "body div[id=content] h1"
+            comments_selector = ".texts"
+            book_genres_seletor = "span.d_book a"
+            book_download_selector = "table.d_book tr a:nth-of-type(2)"
 
             book_img_url = HOST + \
-                str(soup_book.select_one(selector_book_img)["src"])
-            book_text_url = soup_book.select(selector_book_download)
-            title_tag = soup_book.select_one(selector_title)
-            comments_tag = soup_book.select(selector_comments)
-            book_genres = soup_book.select(seletor_book_genres)
+                str(soup_book.select_one(book_img_selector)["src"])
+            book_text_url = soup_book.select(book_download_selector)
+            title_tag = soup_book.select_one(title_selector)
+            comments_tag = soup_book.select(comments_selector)
+            book_genres = soup_book.select(book_genres_seletor)
 
             try:
                 download_book_text_url = HOST + book_text_url[0]["href"]
