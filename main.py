@@ -22,12 +22,12 @@ def download_image(url, filename, folder):
     book_name = filename.text.split("::")[0].strip()
 
     correct_imgename = os.path.join(
-        folder + "images/" + sanitize_filename(book_name))
+        folder, "images", sanitize_filename(book_name)) + ".png"
     response = requests.get(url)
 
-    os.makedirs(folder + "images/", exist_ok=True)
+    os.makedirs(folder + "images", exist_ok=True)
 
-    with open(os.path.join(correct_imgename) + ".png", "wb") as book:
+    with open(os.path.join(correct_imgename), "wb") as book:
         book.write(response.content)
         return url
 
@@ -45,11 +45,11 @@ def download_txt(url, filename, folder):
     book_author = filename.text.split("::")[1].strip()
 
     correct_bookname = os.path.join(
-        folder + "books/" + sanitize_filename(book_name))
+        folder, "books", sanitize_filename(book_name))
 
     response = requests.get(url)
 
-    os.makedirs(folder + "books/", exist_ok=True)
+    os.makedirs(folder + "books", exist_ok=True)
 
     with open(
         os.path.join(correct_bookname) + ".txt", "w", encoding='utf-8'
@@ -64,7 +64,7 @@ def create_json(
     genres = [book_genre.text for book_genre in book_genres]
 
     correct_bookname = os.path.join(
-        folder + "json/" + sanitize_filename(download_txt[0]))
+        folder, "json", sanitize_filename(download_txt[0]))
 
     book_info = {
         "title": str(download_txt[0]),
