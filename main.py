@@ -12,10 +12,10 @@ HOST = "http://tululu.org/"
 def download_comments(comments_tag, filename, folder="comments/"):
     comment_selector = "span.black"
 
-    comments_list = [comment.select_one(comment_selector).text
-                     for comment in comments_tag]
+    comments = [comment.select_one(comment_selector).text
+                for comment in comments_tag]
 
-    return comments_list
+    return comments
 
 
 def download_image(url, filename, folder):
