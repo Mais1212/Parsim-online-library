@@ -5,7 +5,10 @@ import argparse
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from pathvalidate import sanitize_filename
-
+# Не забыть удалить
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# Не забыть удалить
 HOST = "http://tululu.org/"
 
 
@@ -18,14 +21,26 @@ def download_comments(comments_tag, filename, folder="comments/"):
     return comments
 
 
+def check_redirects(response):
+    if response.status_code == 301 or response.status_code == 302:
+        print("redirect")
+        return True
+    return False
+
+
 def download_image(url, filename, folder):
     book_name = filename.text.split("::")[0].strip()
 
     correct_imgename = os.path.join(
-        folder, "images", sanitize_filename(book_name)) + ".png"
-    response = requests.get(url)
+        folder, "images", sanitize_filename(f"{book_name}.png"))
+    response = requests.get(url, verify=False)
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError:
+        print("Ошибка")
+        exit()
 
-    os.makedirs(folder + "images", exist_ok=True)
+    os.makedirs(f"{folder}images", exist_ok=True)
 
     with open(os.path.join(correct_imgename), "wb") as book:
         book.write(response.content)
@@ -45,43 +60,44 @@ def download_txt(url, filename, folder):
     book_author = filename.text.split("::")[1].strip()
 
     correct_bookname = os.path.join(
-        folder, "books", sanitize_filename(book_name))
+        folder, "books", sanitize_filename(f"{book_name}.txt"))
 
-    response = requests.get(url)
+    response = requests.get(url, verify=False)
+    response.raise_for_status()
 
-    os.makedirs(folder + "books", exist_ok=True)
+    os.makedirs(f"{folder}books", exist_ok=True)
 
     with open(
-        os.path.join(correct_bookname) + ".txt", "w", encoding='utf-8'
+        os.path.join(correct_bookname), "w", encoding='utf-8'
     ) as book:
         book.write(response.text)
         return book_name, book_author, correct_bookname
 
 
 def create_json(
-    download_txt, download_comments, download_image, book_genres, folder
-):
+        book_title, book_author, book_path, download_comments, download_image,
+        book_genres, folder):
     genres = [book_genre.text for book_genre in book_genres]
 
     correct_bookname = os.path.join(
-        folder, "json", sanitize_filename(download_txt[0]))
+        folder, "json", sanitize_filename(book_title))
 
     book_info = {
-        "title": str(download_txt[0]),
-        "author": str(download_txt[1]),
+        "title": book_title,
+        "author": book_author,
         "img_scr": str(download_image),
         "comments": download_comments,
-        "book_path": str(download_txt[2]),
+        "book_path": book_path,
         "genres": genres
     }
 
-    os.makedirs(folder + "json/", exist_ok=True)
+    os.makedirs(f"{folder}json/", exist_ok=True)
 
-    with open(correct_bookname + ".json", "w", encoding="utf8") as mu_file:
+    with open(f"{correct_bookname}.json", "w", encoding="utf8") as mu_file:
         json.dump(book_info, mu_file, ensure_ascii=False, indent=3)
 
 
-def createParser():
+def create_parser():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -134,7 +150,7 @@ def createParser():
 
 
 def main():
-    parser = createParser()
+    parser = create_parser()
     namespace = parser.parse_args()
 
     start_page = namespace.start_page
@@ -145,11 +161,16 @@ def main():
     skip_txt = namespace.skip_txt
 
     for page in range(start_page, end_page):
-        print(F"Страница под номером {str(page)} качается")
+        print(f"Страница под номером {str(page)} качается.")
 
-        url = "http://tululu.org/l55/"
+        url = "https://tululu.org/l55/"
         book_page_collection = urljoin(url, str(page))
-        response_books_collection = requests.get(book_page_collection)
+        response_books_collection = requests.get(book_page_collection,
+                                                 verify=False,
+                                                 allow_redirects=False)
+        if check_redirects(response_books_collection):
+            continue
+
         soup_books_collection = BeautifulSoup(
             response_books_collection.text, "lxml")
 
@@ -157,12 +178,18 @@ def main():
         pages_content = soup_books_collection.select(content_selector)
         books_links = get_content(book_page_collection, pages_content)
 
-        for book_url in books_links:
+        for book_link in books_links:
+            response_book = requests.get(book_link, verify=False)
 
-            response_book = requests.get(book_url)
+            try:
+                response_book.raise_for_status()
+            except requests.exceptions.HTTPError:
+                ("Ошибка")
+                continue
+
             soup_book = BeautifulSoup(response_book.text, "lxml")
-            print(book_url)
-            if response_book.status_code == 302:
+            print(book_link)
+            if check_redirects(response_book) == 302:
                 continue
 
             book_img_selector = ".bookimage img"
@@ -170,18 +197,17 @@ def main():
             comments_selector = ".texts"
             book_genres_seletor = "span.d_book a"
             book_download_selector = "table.d_book tr a:nth-of-type(2)"
-
-            book_img_url = HOST + \
-                str(soup_book.select_one(book_img_selector)["src"])
+            book_img_url = f"{HOST}"\
+                f"{soup_book.select_one(book_img_selector)['src']}"
             book_text_url = soup_book.select(book_download_selector)
             title_tag = soup_book.select_one(title_selector)
             comments_tag = soup_book.select(comments_selector)
             book_genres = soup_book.select(book_genres_seletor)
 
             try:
-                download_book_text_url = HOST + book_text_url[0]["href"]
-
+                download_book_text_url = f"{HOST}{book_text_url[0]['href']}"
             except IndexError:
+                print("Нет ссылки на скачивание ;(")
                 continue
 
             comments = download_comments(comments_tag, title_tag)
@@ -189,14 +215,18 @@ def main():
             if skip_txt is False:
                 text = download_txt(download_book_text_url,
                                     title_tag, dest_folder)
-            img = "http://tululu.org//images/nopic.gif"
+            none_img = "http://tululu.org//images/nopic.gif"
+            book_title = str(text[0])
+            book_author = str(text[1])
+            book_path = str(text[2])
 
-            if book_img_url == img:
+            if book_img_url == none_img:
                 pass
             else:
-                if skip_imgs is False:
+                if not skip_imgs:
                     img = download_image(book_img_url, title_tag, dest_folder)
-            create_json(text, comments, img, book_genres, json_path)
+            create_json(book_title, book_author, book_path, comments,
+                        img, book_genres, json_path)
 
 
 if __name__ == "__main__":
