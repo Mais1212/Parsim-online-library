@@ -23,7 +23,7 @@ def download_comments(comments_tag, filename, folder="comments/"):
     return comments
 
 
-def check_redirects(response):
+def has_redirects(response):
     if response.status_code == 301 or response.status_code == 302:
         print("redirect")
         return True
@@ -46,12 +46,12 @@ def download_image(url, filename, folder):
 
     with open(os.path.join(correct_imgename), "wb") as book:
         book.write(response.content)
-        return url
+        return urljoin
 
 
-def get_content(page, pages_content):
+def get_books_links(pages, pages_content):
     url_selector = "div.bookimage a"
-    url_book = [urljoin(page, str(book.select_one(url_selector)["href"]))
+    url_book = [urljoin(pages, str(book.select_one(url_selector)["href"]))
                 for book in pages_content]
 
     return url_book
@@ -151,73 +151,86 @@ def create_parser():
     return parser
 
 
+def create_links_collection(page, agrs):
+    url = "https://tululu.org/l55/"
+    url_book_collection = urljoin(url, str(page))
+    response_books_collection = requests.get(url_book_collection,
+                                             verify=False,
+                                             allow_redirects=False)
+    if has_redirects(response_books_collection):
+        return
+
+    soup_books_collection = BeautifulSoup(
+        response_books_collection.text, "lxml")
+
+    pages_content = soup_books_collection.select("table.d_book")
+    links_collection = get_books_links(url_book_collection, pages_content)
+    return links_collection
+
+
+def make_library(agrs, book_img_url, book_text_url, title_tag, comments_tag,
+                 book_genres):
+    try:
+        download_book_text_url = f"{HOST}{book_text_url[0]['href']}"
+    except IndexError:
+        print("Нет ссылки на скачивание ;(")
+        return
+
+    comments = download_comments(comments_tag, title_tag)
+    text = ["book_name", "book_author", "correct_bookname"]
+    if agrs.skip_txt is False:
+        text = download_txt(download_book_text_url,
+                            title_tag, agrs.dest_folder)
+    none_img = "http://tululu.org//images/nopic.gif"
+    book_title = str(text[0])
+    book_author = str(text[1])
+    book_path = str(text[2])
+
+    if book_img_url == none_img:
+        img = none_img
+        pass
+    else:
+        if not agrs.skip_imgs:
+            img = download_image(
+                book_img_url, title_tag, agrs.dest_folder)
+
+    create_json(book_title, book_author, book_path, comments,
+                img, book_genres, agrs.json_path)
+
+
+def get_book_content(book_link, agrs):
+    response_book = requests.get(book_link, verify=False)
+
+    if not response_book.ok:
+        print("Ошибка")
+        return
+
+    soup_book = BeautifulSoup(response_book.text, "lxml")
+    if has_redirects(response_book):
+        return
+
+    book_img_url = f"{HOST}"\
+        f"{soup_book.select_one('.bookimage img')['src']}"
+    book_text_url = soup_book.select(
+        "table.d_book tr a:nth-of-type(2)")
+    title_tag = soup_book.select_one("body div[id=content] h1")
+    comments_tag = soup_book.select(".texts")
+    book_genres = soup_book.select("span.d_book a")
+
+    make_library(agrs, book_img_url, book_text_url, title_tag, comments_tag,
+                 book_genres)
+
+
 def main():
     parser = create_parser()
     agrs = parser.parse_args()
 
     for page in range(agrs.start_page, agrs.end_page):
-        print(f"Страница под номером {str(page)} качается.")
+        print(f"Страница под номером {page} качается.")
+        links_collection = create_links_collection(page, agrs)
 
-        url = "https://tululu.org/l55/"
-        url_book_collection = urljoin(url, str(page))
-        response_books_collection = requests.get(url_book_collection,
-                                                 verify=False,
-                                                 allow_redirects=False)
-        if check_redirects(response_books_collection):
-            continue
-
-        soup_books_collection = BeautifulSoup(
-            response_books_collection.text, "lxml")
-
-        pages_content = soup_books_collection.select("table.d_book")
-        books_links = get_content(url_book_collection, pages_content)
-
-        for book_link in books_links:
-            response_book = requests.get(book_link, verify=False)
-
-            try:
-                response_book.raise_for_status()
-            except requests.exceptions.HTTPError:
-                print("Ошибка")
-                continue
-
-            soup_book = BeautifulSoup(response_book.text, "lxml")
-            print(book_link)
-            if check_redirects(response_book) == 302:
-                continue
-
-            book_img_url = f"{HOST}"\
-                f"{soup_book.select_one('.bookimage img')['src']}"
-            book_text_url = soup_book.select(
-                "table.d_book tr a:nth-of-type(2)")
-            title_tag = soup_book.select_one("body div[id=content] h1")
-            comments_tag = soup_book.select(".texts")
-            book_genres = soup_book.select("span.d_book a")
-
-            try:
-                download_book_text_url = f"{HOST}{book_text_url[0]['href']}"
-            except IndexError:
-                print("Нет ссылки на скачивание ;(")
-                continue
-
-            comments = download_comments(comments_tag, title_tag)
-            text = ["book_name", "book_author", "correct_bookname"]
-            if agrs.skip_txt is False:
-                text = download_txt(download_book_text_url,
-                                    title_tag, agrs.dest_folder)
-            none_img = "http://tululu.org//images/nopic.gif"
-            book_title = str(text[0])
-            book_author = str(text[1])
-            book_path = str(text[2])
-
-            if book_img_url == none_img:
-                pass
-            else:
-                if not agrs.skip_imgs:
-                    img = download_image(
-                        book_img_url, title_tag, agrs.dest_folder)
-            create_json(book_title, book_author, book_path, comments,
-                        img, book_genres, agrs.json_path)
+        for book_link in links_collection:
+            get_book_content(book_link, agrs)
 
 
 if __name__ == "__main__":
