@@ -27,6 +27,9 @@ def has_redirects(response):
     if response.status_code == 301 or response.status_code == 302:
         print("redirect")
         return True
+    elif not response.ok:
+        print("Ссылка не рабочая")
+        return True
     return False
 
 
@@ -46,7 +49,7 @@ def download_image(url, filename, folder):
 
     with open(os.path.join(correct_imgename), "wb") as book:
         book.write(response.content)
-        return urljoin
+        return url
 
 
 def get_books_links(pages, pages_content):
@@ -87,7 +90,7 @@ def create_json(
     book_info = {
         "title": book_title,
         "author": book_author,
-        "img_scr": str(download_image),
+        "img_url": str(download_image),
         "comments": download_comments,
         "book_path": book_path,
         "genres": genres
@@ -171,14 +174,14 @@ def create_links_collection(page, agrs):
 def make_library(agrs, book_img_url, book_text_url, title_tag, comments_tag,
                  book_genres):
     try:
-        download_book_text_url = f"{HOST}{book_text_url[0]['href']}"
-    except IndexError:
+        download_book_text_url = f"{HOST}{book_text_url['href']}"
+    except TypeError:
         print("Нет ссылки на скачивание ;(")
         return
 
-    comments = download_comments(comments_tag, title_tag)
+    downloaded_comments = download_comments(comments_tag, title_tag)
     text = ["book_name", "book_author", "correct_bookname"]
-    if agrs.skip_txt is False:
+    if not agrs.skip_txt:
         text = download_txt(download_book_text_url,
                             title_tag, agrs.dest_folder)
     none_img = "http://tululu.org//images/nopic.gif"
@@ -189,12 +192,11 @@ def make_library(agrs, book_img_url, book_text_url, title_tag, comments_tag,
     if book_img_url == none_img:
         img = none_img
         pass
-    else:
-        if not agrs.skip_imgs:
-            img = download_image(
-                book_img_url, title_tag, agrs.dest_folder)
+    elif not agrs.skip_imgs:
+        img = download_image(
+            book_img_url, title_tag, agrs.dest_folder)
 
-    create_json(book_title, book_author, book_path, comments,
+    create_json(book_title, book_author, book_path, downloaded_comments,
                 img, book_genres, agrs.json_path)
 
 
@@ -211,13 +213,13 @@ def get_book_content(book_link, agrs):
 
     book_img_url = f"{HOST}"\
         f"{soup_book.select_one('.bookimage img')['src']}"
-    book_text_url = soup_book.select(
+    book_text_url = soup_book.select_one(
         "table.d_book tr a:nth-of-type(2)")
     title_tag = soup_book.select_one("body div[id=content] h1")
-    comments_tag = soup_book.select(".texts")
+    comment_tags = soup_book.select(".texts")
     book_genres = soup_book.select("span.d_book a")
 
-    make_library(agrs, book_img_url, book_text_url, title_tag, comments_tag,
+    make_library(agrs, book_img_url, book_text_url, title_tag, comment_tags,
                  book_genres)
 
 
