@@ -7,10 +7,6 @@ from urllib.parse import urljoin
 from pathvalidate import sanitize_filename
 
 
-# Не забыть удалить
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-# Не забыть удалить
 HOST = "http://tululu.org/"
 
 
