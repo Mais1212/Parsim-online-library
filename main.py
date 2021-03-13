@@ -2,12 +2,13 @@ import argparse
 import json
 import os
 import requests
+import urllib3
 
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 from urllib.parse import urljoin
 
-
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 HOST = "http://tululu.org/"
 
 
