@@ -197,6 +197,10 @@ def make_library(args, book_img_url, book_text_url, title_tag, comments_tag,
 
 
 def get_book_content(book_link, args):
+    if book_link is None:
+        print("Ошибка")
+        return
+
     response_book = requests.get(book_link, verify=False)
 
     if not response_book.ok:
