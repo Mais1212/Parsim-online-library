@@ -150,7 +150,7 @@ def create_parser():
     return parser
 
 
-def create_links_collection(page, agrs):
+def create_links_collection(page, args):
     url = "https://tululu.org/l55/"
     url_book_collection = urljoin(url, str(page))
     response_books_collection = requests.get(url_book_collection,
@@ -167,7 +167,7 @@ def create_links_collection(page, agrs):
     return links_collection
 
 
-def make_library(agrs, book_img_url, book_text_url, title_tag, comments_tag,
+def make_library(args, book_img_url, book_text_url, title_tag, comments_tag,
                  book_genres):
     try:
         download_book_text_url = f"{HOST}{book_text_url['href']}"
@@ -177,9 +177,9 @@ def make_library(agrs, book_img_url, book_text_url, title_tag, comments_tag,
 
     downloaded_comments = download_comments(comments_tag, title_tag)
     text = ["book_name", "book_author", "correct_bookname"]
-    if not agrs.skip_txt:
+    if not args.skip_txt:
         text = download_txt(download_book_text_url,
-                            title_tag, agrs.dest_folder)
+                            title_tag, args.dest_folder)
     none_img = "http://tululu.org//images/nopic.gif"
     book_title = str(text[0])
     book_author = str(text[1])
@@ -188,15 +188,15 @@ def make_library(agrs, book_img_url, book_text_url, title_tag, comments_tag,
     if book_img_url == none_img:
         img = none_img
         pass
-    elif not agrs.skip_imgs:
+    elif not args.skip_imgs:
         img = download_image(
-            book_img_url, title_tag, agrs.dest_folder)
+            book_img_url, title_tag, args.dest_folder)
 
     create_json(book_title, book_author, book_path, downloaded_comments,
-                img, book_genres, agrs.json_path)
+                img, book_genres, args.json_path)
 
 
-def get_book_content(book_link, agrs):
+def get_book_content(book_link, args):
     response_book = requests.get(book_link, verify=False)
 
     if not response_book.ok:
@@ -215,20 +215,20 @@ def get_book_content(book_link, agrs):
     comment_tags = soup_book.select(".texts")
     book_genres = soup_book.select("span.d_book a")
 
-    make_library(agrs, book_img_url, book_text_url, title_tag, comment_tags,
+    make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
                  book_genres)
 
 
 def main():
     parser = create_parser()
-    agrs = parser.parse_args()
+    args = parser.parse_args()
 
-    for page in range(agrs.start_page, agrs.end_page):
+    for page in range(args.start_page, args.end_page):
         print(f"Страница под номером {page} качается.")
-        links_collection = create_links_collection(page, agrs)
+        links_collection = create_links_collection(page, args)
 
         for book_link in links_collection:
-            get_book_content(book_link, agrs)
+            get_book_content(book_link, args)
 
 
 if __name__ == "__main__":
