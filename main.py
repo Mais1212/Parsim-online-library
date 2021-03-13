@@ -1,10 +1,11 @@
+import argparse
 import json
 import os
 import requests
-import argparse
+
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
 from pathvalidate import sanitize_filename
+from urllib.parse import urljoin
 
 
 HOST = "http://tululu.org/"
