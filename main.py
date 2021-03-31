@@ -28,7 +28,6 @@ def has_redirects(response):
     elif not response.ok:
         print("Ссылка не рабочая")
         return True
-    return False
 
 
 def download_image(url, filename, folder):
@@ -37,11 +36,7 @@ def download_image(url, filename, folder):
     correct_imgename = os.path.join(
         folder, "images", sanitize_filename(f"{book_name}.png"))
     response = requests.get(url, verify=False)
-    try:
-        response.raise_for_status()
-    except requests.exceptions.HTTPError:
-        print("Ошибка")
-        exit()
+    raise requests.exceptions.HTTPError
 
     os.makedirs(f"{folder}images", exist_ok=True)
 
@@ -171,11 +166,8 @@ def create_links_collection(page, args):
 
 def make_library(args, book_img_url, book_text_url, title_tag, comments_tag,
                  book_genres):
-    try:
-        download_book_text_url = f"{HOST}{book_text_url['href']}"
-    except TypeError:
-        print("Нет ссылки на скачивание ;(")
-        return
+
+    download_book_text_url = f"{HOST}{book_text_url['href']}"
 
     downloaded_comments = download_comments(comments_tag, title_tag)
     text = ["book_name", "book_author", "correct_bookname"]
@@ -234,7 +226,14 @@ def main():
         links_collection = create_links_collection(page, args)
 
         for book_link in links_collection:
-            get_book_content(book_link, args)
+            try:
+                get_book_content(book_link, args)
+            except TypeError:
+                print("Нет ссылки на скачивание ;(")
+                pass
+            except requests.exceptions.HTTPError:
+                print("Ошибка")
+                exit()
 
 
 if __name__ == "__main__":
