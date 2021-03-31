@@ -72,8 +72,8 @@ def download_txt(url, filename, folder):
 
 
 def create_json(
-        book_title, book_author, book_path, download_comments, download_image,
-        book_genres, folder):
+        book_title, book_author, book_path, downloaded_comments,
+        downloaded_image, book_genres, folder):
     genres = [book_genre.text for book_genre in book_genres]
 
     correct_bookname = os.path.join(
@@ -82,8 +82,8 @@ def create_json(
     book_info = {
         "title": book_title,
         "author": book_author,
-        "img_url": str(download_image),
-        "comments": download_comments,
+        "img_url": str(downloaded_image),
+        "comments": downloaded_comments,
         "book_path": book_path,
         "genres": genres
     }
@@ -179,14 +179,14 @@ def make_library(args, book_img_url, book_text_url, title_tag, comments_tag,
     book_path = str(text[2])
 
     if book_img_url == none_img:
-        img = none_img
+        downloaded_image = none_img
         pass
     elif not args.skip_imgs:
-        img = download_image(
+        downloaded_image = download_image(
             book_img_url, title_tag, args.dest_folder)
 
     create_json(book_title, book_author, book_path, downloaded_comments,
-                img, book_genres, args.json_path)
+                downloaded_image, book_genres, args.json_path)
 
 
 def get_book_content(book_link, args):
