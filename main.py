@@ -12,7 +12,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 HOST = "http://tululu.org/"
 
 
-def get_comments(comments_tag, filename, folder="comments/"):
+def get_comments(comments_tag):
     comment_selector = "span.black"
 
     comments = [comment.select_one(comment_selector).text
@@ -168,7 +168,7 @@ def make_library(args, book_img_url, book_text_url, title_tag, comments_tag,
 
     download_book_text_url = f"{HOST}{book_text_url['href']}"
 
-    downloaded_comments = get_comments(comments_tag, title_tag)
+    downloaded_comments = get_comments(comments_tag)
     text = ["book_name", "book_author", "correct_bookname"]
     if not args.skip_txt:
         text = download_txt(download_book_text_url,
