@@ -36,7 +36,6 @@ def download_image(url, filename, folder):
     correct_imgename = os.path.join(
         folder, "images", sanitize_filename(f"{book_name}.png"))
     response = requests.get(url, verify=False)
-    raise requests.exceptions.HTTPError
 
     os.makedirs(f"{folder}images", exist_ok=True)
 
