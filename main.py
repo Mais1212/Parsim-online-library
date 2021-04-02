@@ -63,6 +63,7 @@ def download_txt(url, filename, folder):
 
     response = requests.get(url, verify=False)
     response.raise_for_status()
+    has_redirects(response)
 
     os.makedirs(f"{folder}books", exist_ok=True)
 
