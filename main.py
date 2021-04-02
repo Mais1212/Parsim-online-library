@@ -12,6 +12,10 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 HOST = "http://tululu.org/"
 
 
+class RedirectError(TypeError):
+    pass
+
+
 def get_comments(comments_tag):
     comment_selector = "span.black"
 
@@ -23,11 +27,9 @@ def get_comments(comments_tag):
 
 def has_redirects(response):
     if response.status_code == 301 or response.status_code == 302:
-        print("redirect")
-        return True
+        raise RedirectError
     elif not response.ok:
-        print("Ссылка не рабочая")
-        return True
+        raise RedirectError
 
 
 def download_image(url, filename, folder):
@@ -152,8 +154,7 @@ def create_links_collection(page, args):
     response_books_collection = requests.get(url_book_collection,
                                              verify=False,
                                              allow_redirects=False)
-    if has_redirects(response_books_collection):
-        return
+    has_redirects(response_books_collection)
 
     soup_books_collection = BeautifulSoup(
         response_books_collection.text, "lxml")
@@ -191,18 +192,13 @@ def make_library(args, book_img_url, book_text_url, title_tag, comments_tag,
 
 def get_book_content(book_link, args):
     if book_link is None:
-        print("Ошибка")
-        return
+        raise requests.exceptions.HTTPError
 
     response_book = requests.get(book_link, verify=False)
 
-    if not response_book.ok:
-        print("Ошибка")
-        return
+    has_redirects(response_book)
 
     soup_book = BeautifulSoup(response_book.text, "lxml")
-    if has_redirects(response_book):
-        return
 
     book_img_url = f"{HOST}"\
         f"{soup_book.select_one('.bookimage img')['src']}"
@@ -222,17 +218,24 @@ def main():
 
     for page in range(args.start_page, args.end_page):
         print(f"Страница под номером {page} качается.")
-        links_collection = create_links_collection(page, args)
+        try:
+            links_collection = create_links_collection(page, args)
+        except RedirectError:
+            print("Redirect")
+            continue
 
         for book_link in links_collection:
             try:
                 get_book_content(book_link, args)
             except TypeError:
                 print("Нет ссылки на скачивание ;(")
-                pass
+                continue
             except requests.exceptions.HTTPError:
                 print("Ошибка")
                 exit()
+            except RedirectError:
+                print("Redirect")
+                continue
 
 
 if __name__ == "__main__":
