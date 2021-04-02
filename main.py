@@ -48,10 +48,10 @@ def download_image(url, filename, folder):
 
 def get_books_links(pages, pages_content):
     url_selector = "div.bookimage a"
-    url_book = [urljoin(pages, book.select_one(url_selector)["href"])
-                for book in pages_content]
+    url_books = [urljoin(pages, book.select_one(url_selector)["href"])
+                 for book in pages_content]
 
-    return url_book
+    return url_books
 
 
 def download_txt(url, filename, folder):
