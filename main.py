@@ -48,7 +48,7 @@ def download_image(url, filename, folder):
 
 def get_books_links(pages, pages_content):
     url_selector = "div.bookimage a"
-    url_book = [urljoin(pages, str(book.select_one(url_selector)["href"]))
+    url_book = [urljoin(pages, book.select_one(url_selector)["href"])
                 for book in pages_content]
 
     return url_book
