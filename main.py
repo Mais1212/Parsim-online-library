@@ -46,9 +46,9 @@ def download_image(url, filename, folder):
         return url
 
 
-def get_books_links(page, page_content):
+def get_books_links(url_page, page_content):
     url_selector = "div.bookimage a"
-    url_books = [urljoin(page, book.select_one(url_selector)["href"])
+    url_books = [urljoin(url_page, book.select_one(url_selector)["href"])
                  for book in page_content]
 
     return url_books
@@ -149,10 +149,10 @@ def create_parser():
     return parser
 
 
-def create_links_collection(page, args):
+def create_links_collection(number_page, args):
     url = "https://tululu.org/l55/"
-    url_book_collection = urljoin(url, str(page))
-    response_books_collection = requests.get(url_book_collection,
+    url_page = urljoin(url, str(number_page))
+    response_books_collection = requests.get(url_page,
                                              verify=False,
                                              allow_redirects=False)
     has_redirects(response_books_collection)
@@ -160,8 +160,8 @@ def create_links_collection(page, args):
     soup_books_collection = BeautifulSoup(
         response_books_collection.text, "lxml")
 
-    pages_content = soup_books_collection.select("table.d_book")
-    links_collection = get_books_links(url_book_collection, pages_content)
+    page_content = soup_books_collection.select("table.d_book")
+    links_collection = get_books_links(url_page, page_content)
     return links_collection
 
 
@@ -217,10 +217,10 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    for page in range(args.start_page, args.end_page):
-        print(f"Страница под номером {page} качается.")
+    for number_page in range(args.start_page, args.end_page):
+        print(f"Страница под номером {number_page} качается.")
         try:
-            links_collection = create_links_collection(page, args)
+            links_collection = create_links_collection(number_page, args)
         except RedirectError:
             print("Redirect")
             continue
