@@ -16,11 +16,11 @@ class RedirectError(TypeError):
     pass
 
 
-def get_comments(comments_tag):
+def get_comments(comment_tags):
     comment_selector = "span.black"
 
     comments = [comment.select_one(comment_selector).text
-                for comment in comments_tag]
+                for comment in comment_tags]
 
     return comments
 
@@ -46,10 +46,10 @@ def download_image(url, filename, folder):
         return url
 
 
-def get_books_links(pages, pages_content):
+def get_books_links(page, page_content):
     url_selector = "div.bookimage a"
-    url_books = [urljoin(pages, book.select_one(url_selector)["href"])
-                 for book in pages_content]
+    url_books = [urljoin(page, book.select_one(url_selector)["href"])
+                 for book in page_content]
 
     return url_books
 
@@ -93,8 +93,8 @@ def create_json(
 
     os.makedirs(f"{folder}json/", exist_ok=True)
 
-    with open(f"{correct_bookname}.json", "w", encoding="utf8") as mu_file:
-        json.dump(book_info, mu_file, ensure_ascii=False, indent=3)
+    with open(f"{correct_bookname}.json", "w", encoding="utf8") as file:
+        json.dump(book_info, file, ensure_ascii=False, indent=3)
 
 
 def create_parser():
@@ -165,12 +165,12 @@ def create_links_collection(page, args):
     return links_collection
 
 
-def make_library(args, book_img_url, book_text_url, title_tag, comments_tag,
+def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
                  book_genres):
 
     download_book_text_url = f"{HOST}{book_text_url['href']}"
 
-    downloaded_comments = get_comments(comments_tag)
+    downloaded_comments = get_comments(comment_tags)
     text = ["book_name", "book_author", "correct_bookname"]
     if not args.skip_txt:
         text = download_txt(download_book_text_url,
