@@ -201,10 +201,8 @@ def get_book_content(book_link, args):
 
     soup_book = BeautifulSoup(response_book.text, "lxml")
 
-    book_img_url = f"{HOST}"\
-        f"{soup_book.select_one('.bookimage img')['src']}"
-    book_text_url = soup_book.select_one(
-        "table.d_book tr a:nth-of-type(2)")
+    book_img_url = f"{HOST}{soup_book.select_one('.bookimage img')['src']}"
+    book_text_url = soup_book.select_one("table.d_book tr a:nth-of-type(2)")
     title_tag = soup_book.select_one("body div[id=content] h1")
     comment_tags = soup_book.select(".texts")
     book_genres = soup_book.select("span.d_book a")
