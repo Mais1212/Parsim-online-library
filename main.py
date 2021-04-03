@@ -16,15 +16,6 @@ class RedirectError(TypeError):
     pass
 
 
-def get_comments(comment_tags):
-    comment_selector = "span.black"
-
-    comments = [comment.select_one(comment_selector).text
-                for comment in comment_tags]
-
-    return comments
-
-
 def has_redirects(response):
     if response.status_code == 301 or response.status_code == 302:
         raise RedirectError
@@ -170,7 +161,8 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
 
     download_book_text_url = f"{HOST}{book_text_url['href']}"
 
-    downloaded_comments = get_comments(comment_tags)
+    downloaded_comments = [comment.text for comment in comment_tags]
+
     text = ["book_name", "book_author", "correct_bookname"]
     if not args.skip_txt:
         text = download_txt(download_book_text_url,
@@ -204,7 +196,7 @@ def get_book_content(book_link, args):
     book_img_url = f"{HOST}{soup_book.select_one('.bookimage img')['src']}"
     book_text_url = soup_book.select_one("table.d_book tr a:nth-of-type(2)")
     title_tag = soup_book.select_one("body div[id=content] h1")
-    comment_tags = soup_book.select(".texts")
+    comment_tags = soup_book.select(".texts span.black")
     book_genres = soup_book.select("span.d_book a")
 
     make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
