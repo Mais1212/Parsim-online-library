@@ -85,7 +85,7 @@ def create_json(
     book_info = {
         "title": book_title,
         "author": book_author,
-        "img_url": str(downloaded_image),
+        "img_url": downloaded_image,
         "comments": downloaded_comments,
         "book_path": book_path,
         "genres": genres
@@ -176,9 +176,9 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
         text = download_txt(download_book_text_url,
                             title_tag, args.dest_folder)
     none_img = "http://tululu.org//images/nopic.gif"
-    book_title = str(text[0])
-    book_author = str(text[1])
-    book_path = str(text[2])
+    book_title = text[0]
+    book_author = text[1]
+    book_path = text[2]
 
     if book_img_url == none_img:
         downloaded_image = none_img
