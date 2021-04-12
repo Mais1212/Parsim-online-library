@@ -183,7 +183,7 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
                 downloaded_image, book_genres, args.json_path)
 
 
-def get_book_content(book_link, args):
+def download_book_content(book_link, args):
     if book_link is None:
         raise requests.exceptions.HTTPError
 
@@ -217,7 +217,7 @@ def main():
 
         for book_link in links:
             try:
-                get_book_content(book_link, args)
+                download_book_content(book_link, args)
             except TypeError:
                 print("Нет ссылки на скачивание ;(")
                 continue
