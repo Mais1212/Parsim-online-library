@@ -39,10 +39,10 @@ def download_image(url, filename, folder):
 
 def get_books_links(url_page, page_content):
     url_selector = "div.bookimage a"
-    url_books = [urljoin(url_page, book.select_one(url_selector)["href"])
+    books_url = [urljoin(url_page, book.select_one(url_selector)["href"])
                  for book in page_content]
 
-    return url_books
+    return books_url
 
 
 def download_txt(url, filename, folder):
@@ -92,16 +92,16 @@ def create_parser():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "-sp",
-        "--start_page",
+        "-ps",
+        "--page_start",
         type=int,
         help="Какой страницой начать?",
         default=1
     )
 
     parser.add_argument(
-        "-ep",
-        "--end_page",
+        "-pe",
+        "--page_end",
         type=int,
         help="Какой страницой закончить?",
         default=701
@@ -140,9 +140,9 @@ def create_parser():
     return parser
 
 
-def create_links_collection(number_page, args):
+def create_links_collection(page_number, args):
     url = "https://tululu.org/l55/"
-    url_page = urljoin(url, str(number_page))
+    url_page = urljoin(url, str(page_number))
     response_books_collection = requests.get(url_page,
                                              verify=False,
                                              allow_redirects=False)
@@ -207,10 +207,10 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    for number_page in range(args.start_page, args.end_page):
-        print(f"Страница под номером {number_page} качается.")
+    for page_number in range(args.page_start, args.page_end):
+        print(f"Страница под номером {page_number} качается.")
         try:
-            links_collection = create_links_collection(number_page, args)
+            links_collection = create_links_collection(page_number, args)
         except RedirectError:
             print("Redirect")
             continue
