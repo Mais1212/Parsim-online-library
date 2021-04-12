@@ -140,7 +140,7 @@ def create_parser():
     return parser
 
 
-def create_links_collection(page_number, args):
+def collect_links(page_number, args):
     url = "https://tululu.org/l55/"
     url_page = urljoin(url, str(page_number))
     response_books_collection = requests.get(url_page,
@@ -152,8 +152,8 @@ def create_links_collection(page_number, args):
         response_books_collection.text, "lxml")
 
     page_content = soup_books_collection.select("table.d_book")
-    links_collection = get_books_links(url_page, page_content)
-    return links_collection
+    links = get_books_links(url_page, page_content)
+    return links
 
 
 def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
@@ -210,12 +210,12 @@ def main():
     for page_number in range(args.page_start, args.page_end):
         print(f"Страница под номером {page_number} качается.")
         try:
-            links_collection = create_links_collection(page_number, args)
+            links = collect_links(page_number, args)
         except RedirectError:
             print("Redirect")
             continue
 
-        for book_link in links_collection:
+        for book_link in links:
             try:
                 get_book_content(book_link, args)
             except TypeError:
