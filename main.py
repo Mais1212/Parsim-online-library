@@ -19,8 +19,6 @@ class RedirectError(TypeError):
 def raise_for_redirect(response):
     if response.status_code == 301 or response.status_code == 302:
         raise RedirectError
-    elif not response.ok:
-        raise RedirectError
 
 
 def download_image(url, filename, folder):
@@ -146,8 +144,8 @@ def collect_links(page_number, args):
     response_books_collection = requests.get(url_page,
                                              verify=False,
                                              allow_redirects=False)
+    response_books_collection.raise_for_status()
     raise_for_redirect(response_books_collection)
-
     soup_books_collection = BeautifulSoup(
         response_books_collection.text, "lxml")
 
@@ -189,6 +187,7 @@ def download_book_content(book_link, args):
 
     response_book = requests.get(book_link, verify=False)
 
+    response_book.raise_for_status()
     raise_for_redirect(response_book)
 
     soup_book = BeautifulSoup(response_book.text, "lxml")
