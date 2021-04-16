@@ -23,13 +23,13 @@ def raise_for_redirect(response):
 def download_image(url, filename, folder):
     book_name = filename.text.split("::")[0].strip()
 
-    img_name = os.path.join(
+    img_path = os.path.join(
         folder, "images", sanitize_filename(f"{book_name}.png"))
     response = requests.get(url, verify=False)
 
     os.makedirs(os.path.join(folder, "images"), exist_ok=True)
 
-    with open(os.path.join(img_name), "wb") as book:
+    with open(os.path.join(img_path), "wb") as book:
         book.write(response.content)
         return url
 
@@ -46,7 +46,7 @@ def download_txt(url, filename, folder):
     book_name = filename.text.split("::")[0].strip()
     book_author = filename.text.split("::")[1].strip()
 
-    book_name = os.path.join(
+    book_path = os.path.join(
         folder, "books", sanitize_filename(f"{book_name}.txt"))
 
     response = requests.get(url, verify=False)
@@ -59,14 +59,14 @@ def download_txt(url, filename, folder):
         os.path.join(book_name), "w", encoding='utf-8'
     ) as book:
         book.write(response.text)
-        return book_name, book_author, book_name
+        return book_path, book_author, book_name
 
 
 def create_json(
         book_title, book_author, book_path, comments,
         downloaded_image, book_genres, folder):
 
-    book_name = os.path.join(
+    json_path = os.path.join(
         folder, "json", sanitize_filename(f'{book_title}.json'))
 
     book = {
@@ -80,7 +80,7 @@ def create_json(
 
     os.makedirs(os.path.join(folder, "json"), exist_ok=True)
 
-    with open(book_name, "w", encoding="utf8") as file:
+    with open(json_path, "w", encoding="utf8") as file:
         json.dump(book, file, ensure_ascii=False, indent=3)
 
 
