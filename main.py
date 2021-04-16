@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 from urllib.parse import urljoin
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 HOST = "http://tululu.org/"
 
 
@@ -157,25 +156,26 @@ def collect_links(page_number, args):
 def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
                  book_genres):
 
-    download_book_text_url = f"{HOST}{book_text_url['href']}"
+    book_text_url = f"{HOST}{book_text_url['href']}"
 
     downloaded_comments = [comment.text for comment in comment_tags]
 
-    text = ["book_name", "book_author", "correct_bookname"]
     if not args.skip_txt:
-        text = download_txt(download_book_text_url,
-                            title_tag, args.dest_folder)
-    none_img = "http://tululu.org//images/nopic.gif"
-    book_title = text[0]
-    book_author = text[1]
-    book_path = text[2]
+        book_title, book_author, book_path = download_txt(
+            book_text_url,
+            title_tag,
+            args.dest_folder)
 
-    if book_img_url == none_img:
-        downloaded_image = none_img
+    default_img = "http://tululu.org//images/nopic.gif"
+
+    if book_img_url == default_img:
+        downloaded_image = None
         pass
     elif not args.skip_imgs:
         downloaded_image = download_image(
-            book_img_url, title_tag, args.dest_folder)
+            book_img_url,
+            title_tag,
+            args.dest_folder)
 
     create_json(book_title, book_author, book_path, downloaded_comments,
                 downloaded_image, book_genres, args.json_path)
@@ -203,6 +203,8 @@ def download_book_content(book_link, args):
 
 
 def main():
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
     parser = create_parser()
     args = parser.parse_args()
 
