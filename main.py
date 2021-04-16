@@ -23,13 +23,13 @@ def raise_for_redirect(response):
 def download_image(url, filename, folder):
     book_name = filename.text.split("::")[0].strip()
 
-    correct_imgename = os.path.join(
+    img_name = os.path.join(
         folder, "images", sanitize_filename(f"{book_name}.png"))
     response = requests.get(url, verify=False)
 
     os.makedirs(f"{folder}images", exist_ok=True)
 
-    with open(os.path.join(correct_imgename), "wb") as book:
+    with open(os.path.join(img_name), "wb") as book:
         book.write(response.content)
         return url
 
@@ -46,7 +46,7 @@ def download_txt(url, filename, folder):
     book_name = filename.text.split("::")[0].strip()
     book_author = filename.text.split("::")[1].strip()
 
-    correct_bookname = os.path.join(
+    book_name = os.path.join(
         folder, "books", sanitize_filename(f"{book_name}.txt"))
 
     response = requests.get(url, verify=False)
@@ -56,33 +56,33 @@ def download_txt(url, filename, folder):
     os.makedirs(f"{folder}books", exist_ok=True)
 
     with open(
-        os.path.join(correct_bookname), "w", encoding='utf-8'
+        os.path.join(book_name), "w", encoding='utf-8'
     ) as book:
         book.write(response.text)
-        return book_name, book_author, correct_bookname
+        return book_name, book_author, book_name
 
 
 def create_json(
-        book_title, book_author, book_path, downloaded_comments,
+        book_title, book_author, book_path, comments,
         downloaded_image, book_genres, folder):
     genres = [book_genre.text for book_genre in book_genres]
 
-    correct_bookname = os.path.join(
+    book_name = os.path.join(
         folder, "json", sanitize_filename(book_title))
 
-    book_info = {
+    book = {
         "title": book_title,
         "author": book_author,
         "img_url": downloaded_image,
-        "comments": downloaded_comments,
+        "comments": comments,
         "book_path": book_path,
         "genres": genres
     }
 
     os.makedirs(f"{folder}json/", exist_ok=True)
 
-    with open(f"{correct_bookname}.json", "w", encoding="utf8") as file:
-        json.dump(book_info, file, ensure_ascii=False, indent=3)
+    with open(f"{book_name}.json", "w", encoding="utf8") as file:
+        json.dump(book, file, ensure_ascii=False, indent=3)
 
 
 def create_parser():
@@ -158,7 +158,7 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
 
     book_text_url = f"{HOST}{book_text_url['href']}"
 
-    downloaded_comments = [comment.text for comment in comment_tags]
+    comments = [comment.text for comment in comment_tags]
 
     if not args.skip_txt:
         book_title, book_author, book_path = download_txt(
@@ -177,7 +177,7 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
             title_tag,
             args.dest_folder)
 
-    create_json(book_title, book_author, book_path, downloaded_comments,
+    create_json(book_title, book_author, book_path, comments,
                 downloaded_image, book_genres, args.json_path)
 
 
