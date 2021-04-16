@@ -65,7 +65,6 @@ def download_txt(url, filename, folder):
 def create_json(
         book_title, book_author, book_path, comments,
         downloaded_image, book_genres, folder):
-    genres = [book_genre.text for book_genre in book_genres]
 
     book_name = os.path.join(
         folder, "json", sanitize_filename(book_title))
@@ -76,7 +75,7 @@ def create_json(
         "img_url": downloaded_image,
         "comments": comments,
         "book_path": book_path,
-        "genres": genres
+        "genres": book_genres
     }
 
     os.makedirs(f"{folder}json/", exist_ok=True)
@@ -176,6 +175,7 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
             book_img_url,
             title_tag,
             args.dest_folder)
+    book_genres = [book_genre.text for book_genre in book_genres]
 
     create_json(book_title, book_author, book_path, comments,
                 downloaded_image, book_genres, args.json_path)
