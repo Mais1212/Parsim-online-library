@@ -27,7 +27,7 @@ def download_image(url, filename, folder):
         folder, "images", sanitize_filename(f"{book_name}.png"))
     response = requests.get(url, verify=False)
 
-    os.makedirs(f"{folder}images", exist_ok=True)
+    os.makedirs(os.path.join(folder, "images"), exist_ok=True)
 
     with open(os.path.join(img_name), "wb") as book:
         book.write(response.content)
@@ -53,7 +53,7 @@ def download_txt(url, filename, folder):
     response.raise_for_status()
     raise_for_redirect(response)
 
-    os.makedirs(f"{folder}books", exist_ok=True)
+    os.makedirs(os.path.join(folder, "books"), exist_ok=True)
 
     with open(
         os.path.join(book_name), "w", encoding='utf-8'
@@ -67,7 +67,7 @@ def create_json(
         downloaded_image, book_genres, folder):
 
     book_name = os.path.join(
-        folder, "json", sanitize_filename(book_title))
+        folder, "json", sanitize_filename(f'{book_title}.json'))
 
     book = {
         "title": book_title,
@@ -78,9 +78,9 @@ def create_json(
         "genres": book_genres
     }
 
-    os.makedirs(f"{folder}json/", exist_ok=True)
+    os.makedirs(os.path.join(folder, "json"), exist_ok=True)
 
-    with open(f"{book_name}.json", "w", encoding="utf8") as file:
+    with open(book_name, "w", encoding="utf8") as file:
         json.dump(book, file, ensure_ascii=False, indent=3)
 
 
