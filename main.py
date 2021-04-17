@@ -15,6 +15,10 @@ class RedirectError(TypeError):
     pass
 
 
+class BookTxtExistenceError(TypeError):
+    pass
+
+
 def raise_for_redirect(response):
     if response.status_code == 301 or response.status_code == 302:
         raise RedirectError
@@ -38,7 +42,6 @@ def get_books_links(url_page, page_content):
     url_selector = "div.bookimage a"
     books_url = [urljoin(url_page, book.select_one(url_selector)["href"])
                  for book in page_content]
-
     return books_url
 
 
@@ -158,7 +161,7 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
     book_text_url = f"{HOST}{book_text_url['href']}"
 
     if not args.skip_txt:
-        book_title, book_author, book_path = download_txt(
+        book_path, book_author, book_title = download_txt(
             book_text_url,
             title_tag,
             args.dest_folder)
@@ -173,8 +176,8 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
             book_img_url,
             title_tag,
             args.dest_folder)
-    book_genres = [book_genre.text for book_genre in book_genres]
 
+    book_genres = [book_genre.text for book_genre in book_genres]
     comments = [comment.text for comment in comment_tags]
     create_json(book_title, book_author, book_path, comments,
                 downloaded_image, book_genres, args.json_path)
@@ -197,8 +200,11 @@ def download_book_content(book_link, args):
     comment_tags = soup_book.select(".texts span.black")
     book_genres = soup_book.select("span.d_book a")
 
-    make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
-                 book_genres)
+    if book_text_url:
+        make_library(args, book_img_url, book_text_url, title_tag,
+                     comment_tags, book_genres)
+    else:
+        raise BookTxtExistenceError
 
 
 def main():
@@ -212,13 +218,12 @@ def main():
         try:
             links = collect_links(page_number, args)
         except RedirectError:
-            print("Redirect")
             continue
 
         for book_link in links:
             try:
                 download_book_content(book_link, args)
-            except TypeError:
+            except BookTxtExistenceError:
                 print("Нет ссылки на скачивание ;(")
                 continue
             except requests.exceptions.HTTPError:
