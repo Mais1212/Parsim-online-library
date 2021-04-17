@@ -56,7 +56,7 @@ def download_txt(url, filename, folder):
     os.makedirs(os.path.join(folder, "books"), exist_ok=True)
 
     with open(
-        os.path.join(book_name), "w", encoding='utf-8'
+        os.path.join(book_path), "w", encoding='utf-8'
     ) as book:
         book.write(response.text)
         return book_path, book_author, book_name
@@ -109,7 +109,7 @@ def create_parser():
         type=str,
         help="Путь к каталогу с результатами парсинга:\
          картинкам, книгам, JSON.",
-        default="library/"
+        default="library"
     )
 
     parser.add_argument(
@@ -131,7 +131,7 @@ def create_parser():
         "--json_path",
         type=str,
         help="Указать свой путь к *.json файлу с результатами",
-        default="library/")
+        default="library")
 
     return parser
 
