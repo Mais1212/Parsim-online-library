@@ -42,9 +42,9 @@ def get_books_links(url_page, page_content):
     return books_url
 
 
-def download_txt(url, filename, folder):
-    book_name = filename.text.split("::")[0].strip()
-    book_author = filename.text.split("::")[1].strip()
+def download_txt(url, title_tag, folder):
+    book_name = title_tag.text.split("::")[0].strip()
+    book_author = title_tag.text.split("::")[1].strip()
 
     book_path = os.path.join(
         folder, "books", sanitize_filename(f"{book_name}.txt"))
@@ -157,8 +157,6 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
 
     book_text_url = f"{HOST}{book_text_url['href']}"
 
-    comments = [comment.text for comment in comment_tags]
-
     if not args.skip_txt:
         book_title, book_author, book_path = download_txt(
             book_text_url,
@@ -177,6 +175,7 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
             args.dest_folder)
     book_genres = [book_genre.text for book_genre in book_genres]
 
+    comments = [comment.text for comment in comment_tags]
     create_json(book_title, book_author, book_path, comments,
                 downloaded_image, book_genres, args.json_path)
 
