@@ -156,7 +156,7 @@ def collect_links(page_number, args):
 
 
 def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
-                 book_genres):
+                 book_genres_tag):
 
     book_text_url = f"{HOST}{book_text_url['href']}"
 
@@ -177,7 +177,7 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
             title_tag,
             args.dest_folder)
 
-    book_genres = [book_genre.text for book_genre in book_genres]
+    book_genres = [book_genre.text for book_genre in book_genres_tag]
     comments = [comment.text for comment in comment_tags]
     create_json(book_title, book_author, book_path, comments,
                 downloaded_image, book_genres, args.json_path)
