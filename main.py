@@ -33,7 +33,7 @@ def download_image(url, filename, folder):
 
     os.makedirs(os.path.join(folder, "images"), exist_ok=True)
 
-    with open(os.path.join(img_path), "wb") as book:
+    with open(img_path, "wb") as book:
         book.write(response.content)
         return url
 
@@ -58,9 +58,7 @@ def download_txt(url, title_tag, folder):
 
     os.makedirs(os.path.join(folder, "books"), exist_ok=True)
 
-    with open(
-        os.path.join(book_path), "w", encoding='utf-8'
-    ) as book:
+    with open(book_path, "w", encoding='utf-8') as book:
         book.write(response.text)
         return book_path, book_author, book_name
 
