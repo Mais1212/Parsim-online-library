@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import json
 import os
 import requests
@@ -24,8 +25,7 @@ def raise_for_redirect(response):
         raise RedirectError
 
 
-def download_image(url, filename, folder):
-    book_name = filename.text.split("::")[0].strip()
+def download_image(url, book_name, folder):
 
     img_path = os.path.join(
         folder, "images", sanitize_filename(f"{book_name}.png"))
@@ -46,7 +46,10 @@ def get_books_links(url_page, page_content):
 
 
 def download_txt(url, title_tag, folder):
-    book_name = title_tag.text.split("::")[0].strip()
+    timestamp = datetime.datetime.now().timestamp()
+    book_title = title_tag.text.split("::")[0].strip()
+    book_name = f"{book_title} {timestamp}"
+
     book_author = title_tag.text.split("::")[1].strip()
 
     book_path = os.path.join(
@@ -64,14 +67,14 @@ def download_txt(url, title_tag, folder):
 
 
 def create_json(
-        book_title, book_author, book_path, comments,
+        book_name, book_author, book_path, comments,
         downloaded_image, book_genres, folder):
 
     json_path = os.path.join(
-        folder, "json", sanitize_filename(f'{book_title}.json'))
+        folder, "json", sanitize_filename(f'{book_name}.json'))
 
     book = {
-        "title": book_title,
+        "title": book_name,
         "author": book_author,
         "img_url": downloaded_image,
         "comments": comments,
@@ -159,7 +162,7 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
     book_text_url = f"{HOST}{book_text_url['href']}"
 
     if not args.skip_txt:
-        book_path, book_author, book_title = download_txt(
+        book_path, book_author, book_name = download_txt(
             book_text_url,
             title_tag,
             args.dest_folder)
@@ -172,12 +175,12 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
     elif not args.skip_imgs:
         downloaded_image = download_image(
             book_img_url,
-            title_tag,
+            book_name,
             args.dest_folder)
 
     book_genres = [book_genre.text for book_genre in book_genres_tag]
     comments = [comment.text for comment in comment_tags]
-    create_json(book_title, book_author, book_path, comments,
+    create_json(book_name, book_author, book_path, comments,
                 downloaded_image, book_genres, args.json_path)
 
 
