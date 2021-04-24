@@ -26,7 +26,6 @@ def raise_for_redirect(response):
 
 
 def download_image(url, book_name, folder):
-
     img_path = os.path.join(
         folder, "images", sanitize_filename(f"{book_name}.png"))
     response = requests.get(url, verify=False)
@@ -38,9 +37,9 @@ def download_image(url, book_name, folder):
         return url
 
 
-def get_books_links(url_page, page_content):
+def get_books_links(page_url, page_content):
     url_selector = "div.bookimage a"
-    books_url = [urljoin(url_page, book.select_one(url_selector)["href"])
+    books_url = [urljoin(page_url, book.select_one(url_selector)["href"])
                  for book in page_content]
     return books_url
 
@@ -142,8 +141,8 @@ def create_parser():
 
 def collect_links(page_number, args):
     url = "https://tululu.org/l55/"
-    url_page = urljoin(url, str(page_number))
-    response_books_collection = requests.get(url_page,
+    page_url = urljoin(url, str(page_number))
+    response_books_collection = requests.get(page_url,
                                              verify=False,
                                              allow_redirects=False)
     response_books_collection.raise_for_status()
@@ -152,7 +151,7 @@ def collect_links(page_number, args):
         response_books_collection.text, "lxml")
 
     page_content = soup_books_collection.select("table.d_book")
-    links = get_books_links(url_page, page_content)
+    links = get_books_links(page_url, page_content)
     return links
 
 
