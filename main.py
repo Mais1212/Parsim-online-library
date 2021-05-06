@@ -28,13 +28,14 @@ def raise_for_redirect(response):
 def download_image(url, book_name, folder):
     img_path = os.path.join(
         folder, "images", sanitize_filename(f"{book_name}.png"))
+
     response = requests.get(url, verify=False)
 
     os.makedirs(os.path.join(folder, "images"), exist_ok=True)
 
     with open(img_path, "wb") as book:
         book.write(response.content)
-        return url
+        return img_path
 
 
 def get_books_links(page_url, page_content):
@@ -67,7 +68,7 @@ def download_txt(url, title_tag, folder):
 
 def create_json(
         book_name, book_author, book_path, comments,
-        downloaded_image, book_genres, folder):
+        img_path, book_genres, folder):
 
     json_path = os.path.join(
         folder, "json", sanitize_filename(f'{book_name}.json'))
@@ -75,7 +76,7 @@ def create_json(
     book = {
         "title": book_name,
         "author": book_author,
-        "img_url": downloaded_image,
+        "img_path": img_path,
         "comments": comments,
         "book_path": book_path,
         "genres": book_genres
@@ -169,10 +170,10 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
     default_img = "http://tululu.org//images/nopic.gif"
 
     if book_img_url == default_img:
-        downloaded_image = None
+        img_path = None
         pass
     elif not args.skip_imgs:
-        downloaded_image = download_image(
+        img_path = download_image(
             book_img_url,
             book_name,
             args.dest_folder)
@@ -180,7 +181,7 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
     book_genres = [book_genre.text for book_genre in book_genres_tag]
     comments = [comment.text for comment in comment_tags]
     create_json(book_name, book_author, book_path, comments,
-                downloaded_image, book_genres, args.json_path)
+                img_path, book_genres, args.json_path)
 
 
 def download_book_content(book_link, args):
