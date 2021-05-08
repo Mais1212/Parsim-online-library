@@ -20,12 +20,19 @@ class BookTxtExistenceError(TypeError):
     pass
 
 
+def make_correct_name(name):
+    splitted_name = name.split()
+    name = "_".join(splitted_name)
+    return name
+
+
 def raise_for_redirect(response):
     if response.status_code == 301 or response.status_code == 302:
         raise RedirectError
 
 
 def download_image(url, book_name, folder):
+    book_name = make_correct_name(book_name)
     img_path = os.path.join(
         folder, "images", sanitize_filename(f"{book_name}.png"))
 
