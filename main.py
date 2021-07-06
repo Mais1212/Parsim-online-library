@@ -46,9 +46,8 @@ def get_books_links(page_url, page_content):
 
 
 def download_txt(url, title_tag, folder):
-    timestamp = datetime.datetime.now().timestamp()
     book_title = title_tag.text.split("::")[0].strip()
-    book_name = f"{book_title} {timestamp}"
+    book_name = f"{book_title}"
 
     book_author = title_tag.text.split("::")[1].strip()
 
@@ -68,7 +67,7 @@ def download_txt(url, title_tag, folder):
 
 def create_json(
         book_name, book_author, book_path, comments,
-        img_path, book_genres, folder):
+        img_path, book_genres, folder, timestamp):
 
     json_path = os.path.join(
         folder, "json", sanitize_filename(f'{book_name}.json'))
@@ -79,7 +78,8 @@ def create_json(
         "img_path": img_path,
         "comments": comments,
         "book_path": book_path,
-        "genres": book_genres
+        "genres": book_genres,
+        "timestamp": timestamp,
     }
 
     os.makedirs(os.path.join(folder, "json"), exist_ok=True)
@@ -180,8 +180,9 @@ def make_library(args, book_img_url, book_text_url, title_tag, comment_tags,
 
     book_genres = [book_genre.text for book_genre in book_genres_tag]
     comments = [comment.text for comment in comment_tags]
+    timestamp = datetime.datetime.now().timestamp()
     create_json(book_name, book_author, book_path, comments,
-                img_path, book_genres, args.json_path)
+                img_path, book_genres, args.json_path, timestamp)
 
 
 def download_book_content(book_link, args):
